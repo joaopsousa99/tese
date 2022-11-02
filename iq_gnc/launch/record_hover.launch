@@ -1,0 +1,7 @@
+<launch>
+  <include file="$(find iq_gnc)/launch/hover.launch"/>
+
+  <node pkg="rosbag" type="record" name="record"
+    args="record -a -o /home/jp/bags/hover"
+  />
+</launch>

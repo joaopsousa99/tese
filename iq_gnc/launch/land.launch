@@ -1,0 +1,6 @@
+<launch>
+  <!-- detetor de elipses -->
+  <node pkg="iq_gnc" name="ellipses"        type="ellipses.py"        output="screen"/>
+  <!-- controlador de posição -->
+  <node pkg="iq_gnc" name="land_on_helipad" type="land_on_helipad.py" output="screen"/>
+</launch>

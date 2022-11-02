@@ -1,0 +1,20 @@
+<launch>
+  <!-- gazebo -->
+  <arg name="gui" default="true"/>
+  <arg name="show_rviz" default="false" />
+  <arg name="world" default="runway" />
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find iq_sim)/worlds/$(arg world).world"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <!-- transformada da câmara -->
+  <node pkg="iq_gnc" name="camera_tf" type="camera_tf_broadcaster.py" respawn="true"/>
+
+  <!-- rviz -->
+  <group if="$(arg show_rviz)">
+    <!-- <node pkg="rviz" name="rviz" type="rviz" args="-d $(find iq_gnc)/rviz/uav_sim_debug.rviz"/> -->
+    <node pkg="rviz" name="rviz" type="rviz" args="-d /home/jp/rviz/tf_debugging.rviz"/>
+  </group>
+</launch>
