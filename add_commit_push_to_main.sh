@@ -1,5 +1,2 @@
 /usr/bin/bash
-git add .
-git commit -m "$0"
-git push tese
-git status
+make git -m="$0"
