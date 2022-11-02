@@ -14,7 +14,7 @@ from sensor_msgs.msg import Image
 
 
 # hack que encontrei no yt que dá skip a mensagens
-# enquanto não terminar de processar a atual
+# enquanto não terminar de processar a atual.
 processing = False
 new_msg = False
 msg = None
