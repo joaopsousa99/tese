@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 from __future__ import print_function
 import itertools
-from math import (sin, cos, atan2)
+from math import (sin, cos, atan2, sqrt)
 import cv2
 import numpy as np
 import rospy
