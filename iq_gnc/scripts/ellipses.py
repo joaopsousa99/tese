@@ -90,12 +90,12 @@ class targetDetector:
 
         # o detetor de contornos precisa de imagens binárias para funcionar bem
         # threshType = cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        # _, th = cv2.threshold(imgGray, (imgMax - np.amin(imgGray))/2+np.amin(imgGray), imgMax, threshType)
         # _, th = cv2.threshold(imgGray, self.BINARIZATION_THRESH, imgMax, threshType)
-        th = cv2.adaptiveThreshold(imgGray, imgMax, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-        # th = cv2.Canny(imgGray, 50, 150)
+        # th = cv2.adaptiveThreshold(imgGray, imgMax, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+        th = cv2.Canny(imgGray, 50, 150)
 
-        contours, _ = cv2.findContours(
-            th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
         ellipses = self.ellipseFilter(contours, th)
 
