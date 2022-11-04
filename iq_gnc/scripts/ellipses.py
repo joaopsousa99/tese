@@ -13,7 +13,7 @@ from scipy.spatial import distance
 from sensor_msgs.msg import Image
 
 
-# hack que encontrei no yt que salta mensagens
+# hack que encontrei no youtube que salta mensagens
 # enquanto não terminar de processar a atual
 processing = False
 new_msg = False
