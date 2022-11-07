@@ -1,4 +1,5 @@
 <launch>
+  <remap from="/iris/pylon_camera_node/image_raw" to="/pylon_camera_node/image_rect" />
   <!-- gazebo -->
   <arg name="gui" default="true"/>
   <arg name="show_rviz" default="false" />
