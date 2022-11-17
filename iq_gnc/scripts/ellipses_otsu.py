@@ -38,6 +38,7 @@ class targetDetector:
 
         # parâmetros
         self.BINARIZATION_THRESH = 127
+        print(f"_, th = cv2.threshold(imgGray, {self.BINARIZATION_THRESH}, imgMax, threshType)")
         self.AREA_TOLERANCE = 5
         self.CONCENTRIC_TOLERANCE = 10
         self.ECCENTRIC_SIMILARITY_TOLERANCE = 0.2
@@ -92,6 +93,7 @@ class targetDetector:
         threshType = cv2.THRESH_BINARY + cv2.THRESH_OTSU
         # _, th = cv2.threshold(imgGray, (imgMax - np.amin(imgGray))/2+np.amin(imgGray), imgMax, threshType)
         _, th = cv2.threshold(imgGray, self.BINARIZATION_THRESH, imgMax, threshType)
+        
         # th = cv2.adaptiveThreshold(imgGray, imgMax, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
         # th = cv2.Canny(imgGray, 50, 150)
 
@@ -117,8 +119,9 @@ class targetDetector:
             targetCenter.z = self.relAlt
         
         self.targetCenterPub.publish(targetCenter)
-        self.targetCounter = self.targetCounter + 1
-        print(f'target no. {self.targetCounter}')
+        if targetCenter.x != 0 and targetCenter.y != 0:
+            self.targetCounter = self.targetCounter + 1
+            print(f'target no. {self.targetCounter}')
 
     def ellipseFilter(self, contours, img):
         nContours = len(contours)
@@ -352,7 +355,7 @@ class targetDetector:
                 # cv2.circle(debugImg, (640, 360), radius, (0,255,0), 2)
                 # print("DESENHEI")
             else:
-                print("2 anéis e têm o mesmo tipo ou são o exterior e o pequeno")
+                # print("2 anéis e têm o mesmo tipo ou são o exterior e o pequeno")
                 targetCenter = Point(0, 0, -1)
 
         # há três anéis e têm tipos diferentes
@@ -373,7 +376,7 @@ class targetDetector:
                 # cv2.circle(debugImg, (640, 360), radius, (0,255,0), 2)
                 # print("DESENHEI")
             else:
-                print("3 anéis e não são todos diferentes")
+                # print("3 anéis e não são todos diferentes")
                 targetCenter = Point(0, 0, -1)
 
         else:
@@ -397,7 +400,7 @@ class targetDetector:
                     # print("3.1")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 iguais")
+                    # print("4+ anéis e há pelos menos 2 iguais")
                     continue
 
                 # se os anéis não foram concêntricos, salta para o próximo par
@@ -405,7 +408,7 @@ class targetDetector:
                     # print("3.3")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 não concêntricos")
+                    # print("4+ anéis e há pelos menos 2 não concêntricos")
                     continue
 
                 # se os anéis não tiverem a mesma orientação, salta para o próximo par
@@ -416,7 +419,7 @@ class targetDetector:
                     # print("3.4")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 com orientações diferentes")
+                    # print("4+ anéis e há pelos menos 2 com orientações diferentes")
                     continue
 
                 # print(f"{ringCombo[0][0]} {ringCombo[1][0]} APPEND")
@@ -438,7 +441,7 @@ class targetDetector:
                     # cv2.imwrite("/home/jp/IMAGE.JPG", img)
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelo menos 2 não concêntricos")
+                    # print("4+ anéis e há pelo menos 2 não concêntricos")
                     continue
 
                 # se os anéis não foram concêntricos, salta para o próximo trio
@@ -451,7 +454,7 @@ class targetDetector:
                     # print(f"{ringCombo[0][0]} {ringCombo[1][0]} {ringCombo[2][0]} anéis não concêntricos")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 não concêntricos")
+                    # print("4+ anéis e há pelos menos 2 não concêntricos")
                     continue
 
                 # se os anéis não tiverem a mesma orientação, salta para o próximo par
@@ -465,7 +468,7 @@ class targetDetector:
                     # print(f"{ringCombo[0][0]} {ringCombo[1][0]} {ringCombo[2][0]} anéis com orientações diferentes")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 com orientações diferentes")
+                    # print("4+ anéis e há pelos menos 2 com orientações diferentes")
                     continue
 
                 targets.append(ringCombo)

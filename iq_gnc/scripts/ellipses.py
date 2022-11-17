@@ -117,8 +117,9 @@ class targetDetector:
             targetCenter.z = self.relAlt
         
         self.targetCenterPub.publish(targetCenter)
-        self.targetCounter = self.targetCounter + 1
-        print(f'target no. {self.targetCounter}')
+        if targetCenter.x != 0 and targetCenter.y != 0:
+            self.targetCounter = self.targetCounter + 1
+            print(f'target no. {self.targetCounter}')
 
     def ellipseFilter(self, contours, img):
         nContours = len(contours)
