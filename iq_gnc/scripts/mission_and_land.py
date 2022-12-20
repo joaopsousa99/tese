@@ -14,15 +14,15 @@ import numpy as np
 class landingController:
   def __init__(self):
     self.imageSub = rospy.Subscriber("pylon_camera_node/image_raw", Image, self.imgCallback)
-    self.targetSub = rospy.Subscriber("target/center", Point, self.targetCallback)
+    self.targetSub = rospy.Subscriber("target/centre", Point, self.targetCallback)
     # self.poseSub = rospy.Subscriber("mavros/global_position/local", Odometry, self.poseCallback)
     self.poseSub = rospy.Subscriber("mavros/local_position/pose", PoseStamped, self.poseCallback)
 
     self.pub = rospy.Publisher("mavros/setpoint_velocity/cmd_vel", TwistStamped, queue_size=10)
  
-    self.MAX_DIST_TO_CENTER_THRESH = 250
-    self.MIN_DIST_TO_CENTER_THRESH = 25
-    self.DISTANCE_TO_CENTER_THRESH = self.MIN_DIST_TO_CENTER_THRESH
+    self.MAX_DIST_TO_CENTRE_THRESH = 250
+    self.MIN_DIST_TO_CENTRE_THRESH = 25
+    self.DISTANCE_TO_CENTRE_THRESH = self.MIN_DIST_TO_CENTRE_THRESH
 
     # PID
     #   constantes calculadas com o método de ziegler-nichols
@@ -85,15 +85,15 @@ class landingController:
       return
 
     else:
-      imgCenter = (self.IMG_WIDTH/2, self.IMG_HEIGHT/2)
-      targetCenter = (data.x, data.y)
+      imgCentre = (self.IMG_WIDTH/2, self.IMG_HEIGHT/2)
+      targetCentre = (data.x, data.y)
 
-      centerDist = euclidean(imgCenter, targetCenter)
-      if centerDist <= self.DISTANCE_TO_CENTER_THRESH:
-        centerDist = 0
+      centreDist = euclidean(imgCentre, targetCentre)
+      if centreDist <= self.DISTANCE_TO_CENTRE_THRESH:
+        centreDist = 0
 
       # está alinhado com o alvo
-      if centerDist < self.DISTANCE_TO_CENTER_THRESH:
+      if centreDist < self.DISTANCE_TO_CENTRE_THRESH:
         deltaZENU = self.relAlt
         if self.relAlt < self.landingAlt:
           self.drone.land()
@@ -150,7 +150,7 @@ class landingController:
   def poseCallback(self, data):
     # self.relAlt = data.pose.pose.position.z*100 # em centímetros
     self.relAlt = data.pose.position.z*100 # em centímetros
-    self.DISTANCE_TO_CENTER_THRESH = max(min(-0.307692307692*self.relAlt + 265.384615385, self.MAX_DIST_TO_CENTER_THRESH), self.MIN_DIST_TO_CENTER_THRESH)
+    self.DISTANCE_TO_CENTRE_THRESH = max(min(-0.307692307692*self.relAlt + 265.384615385, self.MAX_DIST_TO_CENTRE_THRESH), self.MIN_DIST_TO_CENTRE_THRESH)
 
 
 def clamp(x, minimum, maximum):
