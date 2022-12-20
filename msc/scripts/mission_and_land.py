@@ -2,8 +2,8 @@
 from __future__ import print_function
 from concurrent.futures import process
 import rospy
-from iq_gnc.py_gnc_functions import *
-from iq_gnc.PrintColours import *
+from msc.py_gnc_functions import *
+from msc.PrintColours import *
 from geometry_msgs.msg import Point, TwistStamped, PoseStamped
 # from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image

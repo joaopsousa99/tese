@@ -1,1 +1,0 @@
-# fazer um sub da pose que quero dar debug e meter isto a imprimir os dados (em m e º)

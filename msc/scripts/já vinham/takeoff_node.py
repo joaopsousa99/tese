@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 import rospy
-from iq_gnc.py_gnc_functions import *
-from iq_gnc.PrintColours import *
+from msc.py_gnc_functions import *
+from msc.PrintColours import *
 from std_msgs.msg import Bool
 
 def takeoff():

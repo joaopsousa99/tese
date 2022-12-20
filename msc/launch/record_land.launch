@@ -1,5 +1,5 @@
 <launch>
-  <include file="$(find iq_gnc)/launch/land.launch"/>
+  <include file="$(find msc)/launch/land.launch"/>
 
   <node pkg="rosbag" type="record" name="record"
     args="record -a -o /home/jp/bagfiles/land"

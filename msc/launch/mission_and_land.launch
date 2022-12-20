@@ -1,6 +1,6 @@
 <launch>
   <!-- detetor de elipses -->
-  <node pkg="iq_gnc" name="ellipses"        type="ellipses.py"        output="screen"/>
+  <node pkg="msc" name="ellipses"        type="ellipses.py"        output="screen"/>
   <!-- controlador de posição -->
-  <node pkg="iq_gnc" name="mission_and_land" type="mission_and_land.py" output="screen"/>
+  <node pkg="msc" name="mission_and_land" type="mission_and_land.py" output="screen"/>
 </launch>

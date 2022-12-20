@@ -10,7 +10,7 @@
         "/opt/ros/noetic/include/**",
         "/home/jp/catkin_ws/src/aruco_ros/aruco/include/**",
         "/home/jp/catkin_ws/src/aruco_ros/aruco_ros/include/**",
-        "/home/jp/catkin_ws/src/tese/iq_gnc/include/**",
+        "/home/jp/catkin_ws/src/tese/msc/include/**",
         "/home/jp/catkin_ws/src/mavros/libmavconn/include/**",
         "/home/jp/catkin_ws/src/mavros/mavros/include/**",
         "/home/jp/catkin_ws/src/mavros/mavros_msgs/include/**",
