@@ -13,7 +13,7 @@ import numpy as np
 
 class landingController:
   def __init__(self):
-    self.imageSub = rospy.Subscriber("pylon_camera_node/image_raw", Image, self.imgCallback)
+    self.imageSub = rospy.Subscriber("pylon_camera_node/image_rect", Image, self.imgCallback)
     self.targetSub = rospy.Subscriber("target/centre", Point, self.targetCallback)
     # self.poseSub = rospy.Subscriber("mavros/global_position/local", Odometry, self.poseCallback)
     self.poseSub = rospy.Subscriber("mavros/local_position/pose", PoseStamped, self.poseCallback)
@@ -82,6 +82,7 @@ class landingController:
     invalidWidth = self.IMG_WIDTH is None
 
     if invalidX or invalidY or invalidZ or invalidHeight or invalidWidth:
+      print(f"RETURN {data.x} {data.y} {data.z} {self.IMG_HEIGHT} {self.IMG_WIDTH}")
       return
 
     else:
@@ -159,14 +160,14 @@ def clamp(x, minimum, maximum):
 
 def main():
   rospy.init_node("landing_controller", anonymous=True)
-  # rate = rospy.Rate(3)
+  rate = rospy.Rate(3)
 
   hc = landingController()
   hc.setup()
 
   while not rospy.is_shutdown():
     rospy.spin()
+    rate.sleep()
 
 if __name__ == "__main__":
   main()
-
