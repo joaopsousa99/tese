@@ -8,8 +8,8 @@ import numpy as np
 import rospy
 from cv_bridge import (CvBridge, CvBridgeError)
 from geometry_msgs.msg import Point
-from iq_gnc.PrintColours import *
-from iq_gnc.py_gnc_functions import *
+from msc.PrintColours import *
+from msc.py_gnc_functions import *
 from scipy.spatial import distance
 from sensor_msgs.msg import Image
 import os
@@ -407,7 +407,7 @@ class targetDetector:
 
 
 if __name__ == '__main__':
-  os.chdir("/home/jp/catkin_ws/src/iq_gnc")
+  os.chdir("/home/jp/catkin_ws/src/msc")
   print(os.getcwd())
   td = targetDetector()
   td.msg_processing()

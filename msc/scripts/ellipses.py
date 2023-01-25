@@ -7,8 +7,8 @@ import numpy as np
 import rospy
 from cv_bridge import (CvBridge, CvBridgeError)
 from geometry_msgs.msg import Point, PoseStamped
-from iq_gnc.PrintColours import *
-from iq_gnc.py_gnc_functions import *
+from msc.PrintColours import *
+from msc.py_gnc_functions import *
 from scipy.spatial import distance
 from sensor_msgs.msg import Image
 

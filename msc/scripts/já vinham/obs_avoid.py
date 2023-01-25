@@ -4,7 +4,7 @@ import rospy
 # Import LaserScan message from package sensor_msgs.
 from sensor_msgs.msg import LaserScan
 # Import the API.
-from iq_gnc.py_gnc_functions import *
+from msc.py_gnc_functions import *
 # Import the needed math functions.
 from math import cos, sin, pow, radians, sqrt
 # Importing Point message from package geometry_msgs.

@@ -4,9 +4,9 @@ import rospy
 # Importing BoundingBoxes message from package darknet_ros_msgs.
 from darknet_ros_msgs.msg import BoundingBoxes
 # Import the API.
-from iq_gnc.py_gnc_functions import *
+from msc.py_gnc_functions import *
 # To print colours (optional).
-from iq_gnc.PrintColours import *
+from msc.PrintColours import *
 
 
 mode_g = False

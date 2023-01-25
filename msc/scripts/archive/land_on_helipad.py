@@ -1,8 +1,8 @@
 #! /usr/bin/python3
 from __future__ import print_function
 import rospy
-from iq_gnc.py_gnc_functions import *
-from iq_gnc.PrintColours import *
+from msc.py_gnc_functions import *
+from msc.PrintColours import *
 from geometry_msgs.msg import Point, TwistStamped, PoseWithCovarianceStamped
 from sensor_msgs.msg import Image
 from scipy.spatial.distance import euclidean

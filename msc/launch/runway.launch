@@ -10,11 +10,11 @@
   </include>
 
   <!-- transformada da câmara -->
-  <node pkg="iq_gnc" name="camera_tf" type="camera_tf_broadcaster.py" respawn="true"/>
+  <node pkg="msc" name="camera_tf" type="camera_tf_broadcaster.py" respawn="true"/>
 
   <!-- rviz -->
   <group if="$(arg show_rviz)">
-    <!-- <node pkg="rviz" name="rviz" type="rviz" args="-d $(find iq_gnc)/rviz/uav_sim_debug.rviz"/> -->
+    <!-- <node pkg="rviz" name="rviz" type="rviz" args="-d $(find msc)/rviz/uav_sim_debug.rviz"/> -->
     <node pkg="rviz" name="rviz" type="rviz" args="-d /home/jp/rviz/tf_debugging.rviz"/>
   </group>
 </launch>

@@ -1,4 +1,4 @@
-# iq_gnc
+# msc
 
 ![iq](docs/imgs/iq.JPG)
 
@@ -43,7 +43,7 @@ Example program showing how to use a ROS subscriber to take input into your dron
 
 ## Related Repos
 
-[iq_tutorials](https://github.com/Intelligent-Quads/iq_tutorials) - Repo hosting associated tutorials for iq_gnc
+[iq_tutorials](https://github.com/Intelligent-Quads/iq_tutorials) - Repo hosting associated tutorials for msc
 
 [iq_sim](https://github.com/Intelligent-Quads/iq_sim) - Repo hosing the simulation wolds designed to help develop drone gnc missions
 
