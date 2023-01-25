@@ -125,7 +125,7 @@ class targetDetector:
                 targetCentre.z = self.relAlt
             
             self.targetCentrePub.publish(targetCentre)
-            print(f"targetCentre {targetCentre.x} {targetCentre.y} {targetCentre.z}")
+            # print(f"targetCentre {targetCentre.x} {targetCentre.y} {targetCentre.z}")
             if targetCentre.x != 0 and targetCentre.y != 0:
                 self.targetCounter = self.targetCounter + 1
 
@@ -348,7 +348,7 @@ class targetDetector:
             # cv2.drawContours(debugImg, rings[0][4], -1, (0, 255, 0), -1)
             cv2.line(debugImg, (0, int(y)), (1920, int(y)), (255, 0, 0), 2)
             cv2.line(debugImg, (int(x), 0), (int(x), 1080), (255, 0, 0), 2)
-            print(f"biggestRadius = {rings[0][5]}", end=" ")
+            # print(f"biggestRadius = {rings[0][5]}", end=" ")
 
         # há dois anéis e têm tipos diferentes
         elif len(rings) == 2:
@@ -367,9 +367,9 @@ class targetDetector:
                 cv2.line(debugImg, (int(x), 0), (int(x), 1080), (255, 0, 0), 2)
                 # cv2.circle(debugImg, (640, 360), radius, (0,255,0), 2)
                 # print("DESENHEI")
-                print(f"biggestRadius = {rings[0][5]} {rings[1][5]}", end=" ")
+                # print(f"biggestRadius = {rings[0][5]} {rings[1][5]}", end=" ")
             else:
-                print("2 anéis e têm o mesmo tipo ou são o exterior e o pequeno")
+                # print("2 anéis e têm o mesmo tipo ou são o exterior e o pequeno")
                 targetCentre = Point(0, 0, -1)
 
         # há três anéis e têm tipos diferentes
@@ -389,9 +389,9 @@ class targetDetector:
                 cv2.line(debugImg, (int(x), 0), (int(x), 1080), (255, 0, 0), 2)
                 # cv2.circle(debugImg, (640, 360), radius, (0,255,0), 2)
                 # print("DESENHEI")
-                print(f"biggestRadius = {rings[0][5]} {rings[1][5]} {rings[2][5]}", end=" ")
+                # print(f"biggestRadius = {rings[0][5]} {rings[1][5]} {rings[2][5]}", end=" ")
             else:
-                print("3 anéis e não são todos diferentes")
+                # print("3 anéis e não são todos diferentes")
                 targetCentre = Point(0, 0, -1)
 
         else:
@@ -415,7 +415,7 @@ class targetDetector:
                     # print("3.1")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 iguais")
+                    # print("4+ anéis e há pelos menos 2 iguais")
                     continue
 
                 # se os anéis não foram concêntricos, salta para o próximo par
@@ -423,7 +423,7 @@ class targetDetector:
                     # print("3.3")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 não concêntricos")
+                    # print("4+ anéis e há pelos menos 2 não concêntricos")
                     continue
 
                 # se os anéis não tiverem a mesma orientação, salta para o próximo par
@@ -434,7 +434,7 @@ class targetDetector:
                     # print("3.4")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 com orientações diferentes")
+                    # print("4+ anéis e há pelos menos 2 com orientações diferentes")
                     continue
 
                 # print(f"{ringCombo[0][0]} {ringCombo[1][0]} APPEND")
@@ -456,7 +456,7 @@ class targetDetector:
                     # cv2.imwrite("/home/jp/IMAGE.JPG", img)
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelo menos 2 não concêntricos")
+                    # print("4+ anéis e há pelo menos 2 não concêntricos")
                     continue
 
                 # se os anéis não foram concêntricos, salta para o próximo trio
@@ -469,7 +469,7 @@ class targetDetector:
                     # print(f"{ringCombo[0][0]} {ringCombo[1][0]} {ringCombo[2][0]} anéis não concêntricos")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 não concêntricos")
+                    # print("4+ anéis e há pelos menos 2 não concêntricos")
                     continue
 
                 # se os anéis não tiverem a mesma orientação, salta para o próximo par
@@ -483,7 +483,7 @@ class targetDetector:
                     # print(f"{ringCombo[0][0]} {ringCombo[1][0]} {ringCombo[2][0]} anéis com orientações diferentes")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                    print("4+ anéis e há pelos menos 2 com orientações diferentes")
+                    # print("4+ anéis e há pelos menos 2 com orientações diferentes")
                     continue
 
                 targets.append(ringCombo)
@@ -504,11 +504,11 @@ class targetDetector:
                          (1280, int(targetCentreY)), (255, 0, 0), 2)
                 cv2.line(debugImg, (int(targetCentreX), 0),
                          (int(targetCentreX), 720), (255, 0, 0), 2)
-                print(f"biggestRadius = aaaaaaaaaaa")
+                # print(f"biggestRadius = aaaaaaaaaaa")
                 # cv2.circle(debugImg, (640, 360), radius, (0,255,0), 2)
-                # print(f"alvo detetado ({(targetCentreX/1280)*100:.2f}, {(targetCentreY/800)*100:.2f})")
+                # # print(f"alvo detetado ({(targetCentreX/1280)*100:.2f}, {(targetCentreY/800)*100:.2f})")
             else:
-                print(f"biggestRadius = bbbbbbbbbbb")
+                # print(f"biggestRadius = bbbbbbbbbbb")
                 # print("4")
                 targetCentre = Point(0, 0, -1)
                 # cv2.circle(debugImg, (640, 360), radius, (0,0,255), 2)

@@ -82,7 +82,7 @@ class landingController:
     invalidWidth = self.IMG_WIDTH is None
 
     if invalidX or invalidY or invalidZ or invalidHeight or invalidWidth:
-      print(f"RETURN {data.x} {data.y} {data.z} {self.IMG_HEIGHT} {self.IMG_WIDTH}")
+      # print(f"RETURN {data.x} {data.y} {data.z} {self.IMG_HEIGHT} {self.IMG_WIDTH}")
       return
 
     else:
