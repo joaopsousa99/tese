@@ -255,7 +255,7 @@ class targetDetector:
       x = rings[0][2][0]
       y = rings[0][2][1]
       z = 0
-      targetCenter = Point(x, y, z)
+      targetCentre = Point(x, y, z)
       # cv2.drawContours(debugImg, rings[0][4], -1, (0, 255, 0), -1)
       cv2.line(debugImg, (0,int(y)), (4608,int(y)), (255,0,0), 2)
       cv2.line(debugImg, (int(x),0), (int(x),3456), (255,0,0), 2)
@@ -267,7 +267,7 @@ class targetDetector:
       x = (rings[0][2][0] + rings[1][2][0])/2
       y = (rings[0][2][1] + rings[1][2][1])/2
       z = 0
-      targetCenter = Point(x, y, z)
+      targetCentre = Point(x, y, z)
       # cv2.drawContours(debugImg, rings[0][4], -1, (0, 255, 0), -1)
       # cv2.drawContours(debugImg, rings[1][4], -1, (0, 255, 0), -1)
       cv2.line(debugImg, (0,int(y)), (4608,int(y)), (255,0,0), 2)
@@ -280,7 +280,7 @@ class targetDetector:
       x = (rings[0][2][0] + rings[1][2][0] + rings[2][2][0])/3
       y = (rings[0][2][1] + rings[1][2][1] + rings[2][2][1])/3
       z = 0
-      targetCenter = Point(x, y, z)
+      targetCentre = Point(x, y, z)
       # print(f"{x}, {y}, {z}")
       # cv2.drawContours(debugImg, rings[0][4], -1, (0, 255, 0), -1)
       # cv2.drawContours(debugImg, rings[1][4], -1, (0, 255, 0), -1)
@@ -382,25 +382,25 @@ class targetDetector:
           print("MAIS QUE UM ALVO DETETADO")
 
         # assume-se que o primeiro par de anéis é o correto
-        targetCenterX = (targets[0][0][2][0] + targets[0][1][2][0])/2
-        targetCenterY = (targets[0][0][2][1] + targets[0][1][2][1])/2
+        targetCentreX = (targets[0][0][2][0] + targets[0][1][2][0])/2
+        targetCentreY = (targets[0][0][2][1] + targets[0][1][2][1])/2
         # print(f"X {ringCombo[0][2][0]} {ringCombo[1][2][0]}")
         # print(f"Y {ringCombo[0][2][1]} {ringCombo[1][2][1]}")
         print(len(targets[0]))
-        print(f"{targetCenterX} {targetCenterY}")
+        print(f"{targetCentreX} {targetCentreY}")
 
-        targetCenter = Point(targetCenterX, targetCenterY, 0)
+        targetCentre = Point(targetCentreX, targetCentreY, 0)
         # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
         # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-        cv2.line(debugImg, (0,int(targetCenterY)), (4608,int(targetCenterY)), (255,0,0),2)
-        cv2.line(debugImg, (int(targetCenterX),0), (int(targetCenterX),3456), (255,0,0),2)
-        # print(f"alvo detetado ({(targetCenterX/1280)*100:.2f}, {(targetCenterY/800)*100:.2f})")
+        cv2.line(debugImg, (0,int(targetCentreY)), (4608,int(targetCentreY)), (255,0,0),2)
+        cv2.line(debugImg, (int(targetCentreX),0), (int(targetCentreX),3456), (255,0,0),2)
+        # print(f"alvo detetado ({(targetCentreX/1280)*100:.2f}, {(targetCentreY/800)*100:.2f})")
       else:
         print("Não foram detetados alvos")
-        targetCenter = Point(0, 0, -1)
+        targetCentre = Point(0, 0, -1)
 
     cv2.imwrite("images/target_debugger.jpg", debugImg)
-    return targetCenter
+    return targetCentre
 
   def poseCallback(self, data):
     self.relAlt = data.pose.pose.position.z # em metros

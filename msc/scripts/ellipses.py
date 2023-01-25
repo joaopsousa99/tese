@@ -7,8 +7,6 @@ import numpy as np
 import rospy
 from cv_bridge import (CvBridge, CvBridgeError)
 from geometry_msgs.msg import Point, PoseStamped
-from msc.PrintColours import *
-from msc.py_gnc_functions import *
 from scipy.spatial import distance
 from sensor_msgs.msg import Image
 
@@ -28,7 +26,7 @@ class targetDetector:
         self.bridge = CvBridge()
         # self.imageSub = rospy.Subscriber("camera/image_raw", Image, self.callback)
         self.imageSub = rospy.Subscriber("pylon_camera_node/image_rect", Image, self.callback)
-        self.targetCenterPub = rospy.Publisher("target/center", Point, queue_size=1)
+        self.targetCentrePub = rospy.Publisher("target/centre", Point, queue_size=1)
         self.ellipseDebugger = rospy.Publisher("target/ellipse_debugging", Image, queue_size=1)
         self.ringDebugger = rospy.Publisher("target/ring_debugging", Image, queue_size=1)
         self.targetDebugger = rospy.Publisher("target/target_debugging", Image, queue_size=1)
@@ -76,56 +74,68 @@ class targetDetector:
     def msg_processing(self, msg):
         # print("-" * 55)
         self.frameCounter = self.frameCounter + 1
-        print(f'frame no. {self.frameCounter}')
+        # print(f'frame no. {self.frameCounter}')
         # converte a mensagem ROS Image para uma imagem OpenCV
-        img = self.ros2cv(msg, "bayer_gbrg8")
-        if img is None:
+        imgGray = self.ros2cv(msg, "mono8")
+        if imgGray is None:
             print("ERROR: img is None")
+            self.targetCentrePub.publish(Point(0, 0, -1))
+        else:
+            # o detetor de contornos trabalha sobre imagens de apenas um canal
+            # pré-processamento para remover ruído
+            # imgGray = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2GRAY)
+            imgGray = cv2.bilateralFilter(imgGray, 5, 175, 175)
+            imgMax = np.amax(imgGray)
+            
+            imgGray = np.uint8((imgGray - np.amin(imgGray))/(imgMax - np.amin(imgGray))*255)
+            
+            imgGray = cv2.erode(imgGray, np.ones((5, 5), np.uint8))
+            imgGray = cv2.dilate(imgGray, np.ones((5, 5), np.uint8))
 
-        # o detetor de contornos trabalha sobre imagens de apenas um canal
-        # pré-processamento para remover ruído
-        imgGray = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2GRAY)
-        imgGray = cv2.bilateralFilter(imgGray, 10, 175, 175)
-        imgMax = np.amax(imgGray)
+            # o detetor de contornos precisa de imagens binárias para funcionar bem
+            threshType = cv2.THRESH_BINARY + cv2.THRESH_OTSU
+            # _, th = cv2.threshold(imgGray, (imgMax - np.amin(imgGray))/2+np.amin(imgGray), imgMax, threshType)
+            _, th = cv2.threshold(imgGray, self.BINARIZATION_THRESH, imgMax, threshType)
+            # th = cv2.adaptiveThreshold(imgGray, imgMax, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+            # th = cv2.Canny(imgGray, 50, 150)
 
-        # o detetor de contornos precisa de imagens binárias para funcionar bem
-        # threshType = cv2.THRESH_BINARY + cv2.THRESH_OTSU
-        # _, th = cv2.threshold(imgGray, (imgMax - np.amin(imgGray))/2+np.amin(imgGray), imgMax, threshType)
-        # _, th = cv2.threshold(imgGray, self.BINARIZATION_THRESH, imgMax, threshType)
-        # th = cv2.adaptiveThreshold(imgGray, imgMax, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-        th = cv2.Canny(imgGray, 50, 150)
+            # th = cv2.erode(th, np.ones((5, 5), np.uint8))
+            # th = cv2.dilate(th, np.ones((5, 5), np.uint8))
 
-        contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-        ellipses = self.ellipseFilter(contours, th)
+            # ellipses = self.ellipseFilter(contours, th)
+            ellipses = self.ellipseFilter(contours, imgGray)
 
-        # o anel de fora tem 2 elipses
-        # no entanto, o drone pode estar demasiado perto ou longe para detetá-las todas
-        if len(ellipses) < 2:
-            self.targetCenterPub.publish(Point(0, 0, -1))
-            return
+            # o anel de fora tem 2 elipses
+            # no entanto, o drone pode estar demasiado perto ou longe para detetá-las todas
+            if len(ellipses) < 2:
+                self.targetCentrePub.publish(Point(0, 0, -1))
+                return
 
-        # self.debugPub.publish(self.bridge.cv2_to_imgmsg(th, encoding="passthrough"))
-        rings = self.ringDetector(imgGray, contours, ellipses)
+            # self.debugPub.publish(self.bridge.cv2_to_imgmsg(th, encoding="passthrough"))
+            rings = self.ringDetector(imgGray, contours, ellipses)
 
-        if len(rings) < 1:
-            self.targetCenterPub.publish(Point(0, 0, -2))
-            return
+            if len(rings) < 1:
+                self.targetCentrePub.publish(Point(0, 0, -2))
+                return
 
-        targetCenter = self.targetDetector(rings, imgGray)
-        if not (targetCenter.x == 0 and targetCenter.y == 0):
-            targetCenter.z = self.relAlt
-        
-        self.targetCenterPub.publish(targetCenter)
-        self.targetCounter = self.targetCounter + 1
-        print(f'target no. {self.targetCounter}')
+            targetCentre = self.targetDetector(rings, imgGray)
+            if not (targetCentre.x == 0 and targetCentre.y == 0):
+                targetCentre.z = self.relAlt
+            
+            self.targetCentrePub.publish(targetCentre)
+            print(f"targetCentre {targetCentre.x} {targetCentre.y} {targetCentre.z}")
+            if targetCentre.x != 0 and targetCentre.y != 0:
+                self.targetCounter = self.targetCounter + 1
 
-    def ellipseFilter(self, contours, img):
+    def ellipseFilter(self, contours, debugimg):
         nContours = len(contours)
         ellipses = []
         # debugimg = np.zeros_like(img)
-        debugimg = img.copy()
+        # debugimg = img.copy()
         debugimg = cv2.merge((debugimg, debugimg, debugimg))
+        # debugimg = np.uint8(debugimg*255/np.amax(debugimg))
 
         for c in range(nContours):
             # se o contorno tiver mais de 4 pontos
@@ -148,7 +158,7 @@ class targetDetector:
 
                 if greaterThanMinArea and lessThanMaxArea:
                     # adiciona elipse à lista de candidatos
-                    ellipses.append((x, y, a, b, phi, c))
+                    ellipses.append((x, y, a, b, phi, c, np.amax(np.array([a,b]))))
                     debugimg = cv2.ellipse(debugimg, (int(x), int(y)), (int(
                         a/2), int(b/2)), phi, 0, 360, (0, 255, 0), 2)
                 elif not (np.isnan(x) or np.isnan(y) or np.isnan(a) or np.isnan(b) or np.isnan(phi)):
@@ -156,10 +166,9 @@ class targetDetector:
                         a/2), int(b/2)), phi, 0, 360, (0, 0, 255), 2)
 
         # for e in ellipses:
-        #   print(f"x = {e[0]:.0f} y = {e[1]:.0f} a = {e[2]/ellipses[-1][2]*500:.0f} b = {e[3]/ellipses[-1][3]*500:.0f} phi = {e[4]:.0f} c = {e[5]}")
+        #   print(f"x = {e[0]:.0f} y = {e[1]:.0f} a = {e[2]/ellipses[-1][2]*500:.0f} b = {e[3]/ellipses[-1][3]*500:.0f} phi = {e[4]:.0f} c = {e[5]}", end=" ")
 
-        self.ellipseDebugger.publish(
-            self.bridge.cv2_to_imgmsg(debugimg, encoding="passthrough"))
+        self.ellipseDebugger.publish(self.bridge.cv2_to_imgmsg(debugimg, encoding="passthrough"))
         return (ellipses)
 
     def ringDetector(self, imgGray, contours, ellipses):
@@ -179,6 +188,7 @@ class targetDetector:
             b = (pair[0][3], pair[1][3])
             phi = (pair[0][4], pair[1][4])
             c = (pair[0][5], pair[1][5])
+
             # dimg = cv2.drawContours(dimg, [contours[c[0]], contours[c[1]]], -1, (0,255,0), -1)
 
             # se as elipses do par não são concêntricas, salta para o próximo par
@@ -201,8 +211,8 @@ class targetDetector:
             if eccentricSimilarity <= self.ECCENTRIC_TOLERANCE:
                 angleDiff = 0
             else:
-                angleDiff = abs(
-                    atan2(sin(phi[0] - phi[1]), cos(sin(phi[0] - phi[1]))))
+                # angleDiff = abs(atan2(sin(phi[0] - phi[1]), cos(sin(phi[0] - phi[1]))))
+                angleDiff = abs(atan2(sin(phi[0] - phi[1]), cos(phi[0] - phi[1])))
 
             anglesAreTooDifferent = angleDiff > self.ANGLE_DIFF_TOLERANCE
 
@@ -241,8 +251,8 @@ class targetDetector:
             distanceToObject = self.FOCAL_DISTANCE*self.WIDTH_IN_MM/widthInPixels
 
             # valor abaixo do qual um píxel é considerado preto
-            blackThreshold = self.BLACK_TOLERANCE_PERCENT * \
-                (imgMax - imgMin) + imgMin + 100
+            blackThreshold = self.BLACK_TOLERANCE_PERCENT * (imgMax - imgMin) + imgMin + 100
+            # print(f"blackThreshold = self.BLACK_TOLERANCE_PERCENT * ({imgMax} - {imgMin}) + {imgMin} + 100")
 
             # máscara que indica os píxeis dentro do anel
             ringMask = np.zeros_like(imgGray)
@@ -267,7 +277,7 @@ class targetDetector:
 
             # se o anel não for preto o suficiente, salta para o próximo par
             # desmos[0]/(distanceToObject + desmos[1]) + desmos[2]:
-            # print(blackPercentage)
+            # print(f"{blackPercentage} out of {blackThreshold}")
             if blackPercentage <= 80:
                 # print(f"[{c[0]}, {c[1]}]: preto")
                 continue
@@ -290,7 +300,12 @@ class targetDetector:
             #   2 - anel pequeno
             typeOfRing = [i for i, x in enumerate(ringFlags) if x][0]
 
-            rings.append((index, typeOfRing, ringEllipsesCentroid, meanRingOrientation, ringContours))
+            if typeOfRing == 0:
+                biggestRadius = np.amax(np.array([a[0], b[0], a[1], b[1]]))
+            else:
+                biggestRadius = 0
+
+            rings.append((index, typeOfRing, ringEllipsesCentroid, meanRingOrientation, ringContours, biggestRadius))
 
             dimg = cv2.drawContours(dimg, [contours[c[0]], contours[c[1]]], -1, (0, 255, 0), -1)
             # print(f"tipo {typeOfRing}\tcentro ({ringEllipsesCentroid[0]:.0f}, {ringEllipsesCentroid[1]:.0f})\traios ({(a[0]+b[0])/2:.0f}, {(a[1]+b[1])/2:.0f})\trácio {(a[0]+b[0])/(a[1]+b[1]):.3f}")
@@ -303,8 +318,8 @@ class targetDetector:
         # rings = (index, typeOfRing, ringEllipsesCentroid, meanRingOrientation, ringContours)
         debugImg = img.copy()
         debugImg = cv2.merge((debugImg, debugImg, debugImg))
-        radius = int(
-            max(min(-30.7692307692*self.relAlt + 265.384615385, 250), 25))
+        
+        radius = int(max(min(-30.7692307692*self.relAlt + 265.384615385, 250), 25))
         # print(f"int(max(min(-30*{self.relAlt:.2f} + 115, 100), 25)) = {radius}")
 
         # só há 1 anel e não é o exterior
@@ -316,7 +331,7 @@ class targetDetector:
             #     x = rings[0][2][0]
             #     y = rings[0][2][1]
             #     z = 0
-            #     targetCenter = Point(x, y, z)
+            #     targetCentre = Point(x, y, z)
             #     # cv2.drawContours(debugImg, rings[0][4], -1, (0, 255, 0), -1)
             #     cv2.line(debugImg, (0, int(y)), (1920, int(y)), (255, 0, 0), 2)
             #     cv2.line(debugImg, (int(x), 0), (int(x), 1080), (255, 0, 0), 2)
@@ -324,15 +339,16 @@ class targetDetector:
             #     # print("DESENHEI")
             # else:
             #     print("1 anel e é o exterior")
-            #     targetCenter = Point(0, 0, -1)
+            #     targetCentre = Point(0, 0, -1)
 
             x = rings[0][2][0]
             y = rings[0][2][1]
             z = 0
-            targetCenter = Point(x, y, z)
+            targetCentre = Point(x, y, z)
             # cv2.drawContours(debugImg, rings[0][4], -1, (0, 255, 0), -1)
             cv2.line(debugImg, (0, int(y)), (1920, int(y)), (255, 0, 0), 2)
             cv2.line(debugImg, (int(x), 0), (int(x), 1080), (255, 0, 0), 2)
+            print(f"biggestRadius = {rings[0][5]}", end=" ")
 
         # há dois anéis e têm tipos diferentes
         elif len(rings) == 2:
@@ -344,16 +360,17 @@ class targetDetector:
                 x = (rings[0][2][0] + rings[1][2][0])/2
                 y = (rings[0][2][1] + rings[1][2][1])/2
                 z = 0
-                targetCenter = Point(x, y, z)
+                targetCentre = Point(x, y, z)
                 # cv2.drawContours(debugImg, rings[0][4], -1, (0, 255, 0), -1)
                 # cv2.drawContours(debugImg, rings[1][4], -1, (0, 255, 0), -1)
                 cv2.line(debugImg, (0, int(y)), (1920, int(y)), (255, 0, 0), 2)
                 cv2.line(debugImg, (int(x), 0), (int(x), 1080), (255, 0, 0), 2)
                 # cv2.circle(debugImg, (640, 360), radius, (0,255,0), 2)
                 # print("DESENHEI")
+                print(f"biggestRadius = {rings[0][5]} {rings[1][5]}", end=" ")
             else:
                 print("2 anéis e têm o mesmo tipo ou são o exterior e o pequeno")
-                targetCenter = Point(0, 0, -1)
+                targetCentre = Point(0, 0, -1)
 
         # há três anéis e têm tipos diferentes
         elif len(rings) == 3:
@@ -364,7 +381,7 @@ class targetDetector:
                 x = (rings[0][2][0] + rings[1][2][0] + rings[2][2][0])/3
                 y = (rings[0][2][1] + rings[1][2][1] + rings[2][2][1])/3
                 z = 0
-                targetCenter = Point(x, y, z)
+                targetCentre = Point(x, y, z)
                 # print(f"{x}, {y}, {z}")
                 # cv2.drawContours(debugImg, rings[0][4], -1, (0, 255, 0), -1)
                 # cv2.drawContours(debugImg, rings[1][4], -1, (0, 255, 0), -1)
@@ -372,9 +389,10 @@ class targetDetector:
                 cv2.line(debugImg, (int(x), 0), (int(x), 1080), (255, 0, 0), 2)
                 # cv2.circle(debugImg, (640, 360), radius, (0,255,0), 2)
                 # print("DESENHEI")
+                print(f"biggestRadius = {rings[0][5]} {rings[1][5]} {rings[2][5]}", end=" ")
             else:
                 print("3 anéis e não são todos diferentes")
-                targetCenter = Point(0, 0, -1)
+                targetCentre = Point(0, 0, -1)
 
         else:
             # print("else")
@@ -389,7 +407,7 @@ class targetDetector:
             # este ciclo for vai determinar que pares de anéis formam o alvo de aterragem
             for ringCombo in ringCombinations:
                 ringType = (ringCombo[0][1], ringCombo[1][1])
-                ringCenter = (ringCombo[0][2], ringCombo[1][2])
+                ringCentre = (ringCombo[0][2], ringCombo[1][2])
                 angles = (ringCombo[0][3], ringCombo[1][3])
 
                 # se os anéis forem do mesmo tipo (exterior e interior), salta para o próximo par
@@ -401,7 +419,7 @@ class targetDetector:
                     continue
 
                 # se os anéis não foram concêntricos, salta para o próximo par
-                if distance.euclidean(ringCenter[0], ringCenter[1]) >= self.CONCENTRIC_TOLERANCE:
+                if distance.euclidean(ringCentre[0], ringCentre[1]) >= self.CONCENTRIC_TOLERANCE:
                     # print("3.3")
                     # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                     # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
@@ -426,7 +444,7 @@ class targetDetector:
 
             for ringCombo in ringCombinations:
                 ringType = (ringCombo[0][1], ringCombo[1][1], ringCombo[2][1])
-                ringCenter = (ringCombo[0][2],
+                ringCentre = (ringCombo[0][2],
                               ringCombo[1][2], ringCombo[2][2])
                 angles = (ringCombo[0][3], ringCombo[1][3], ringCombo[2][3])
 
@@ -442,9 +460,9 @@ class targetDetector:
                     continue
 
                 # se os anéis não foram concêntricos, salta para o próximo trio
-                dist01 = distance.euclidean(ringCenter[0], ringCenter[1])
-                dist02 = distance.euclidean(ringCenter[0], ringCenter[2])
-                dist12 = distance.euclidean(ringCenter[1], ringCenter[2])
+                dist01 = distance.euclidean(ringCentre[0], ringCentre[1])
+                dist02 = distance.euclidean(ringCentre[0], ringCentre[2])
+                dist12 = distance.euclidean(ringCentre[1], ringCentre[2])
                 concentric = dist01 >= self.CONCENTRIC_TOLERANCE and dist02 >= self.CONCENTRIC_TOLERANCE and dist12 >= self.CONCENTRIC_TOLERANCE
 
                 if not concentric:
@@ -476,34 +494,36 @@ class targetDetector:
                     cv2.imwrite("/home/jp/IMAGE.JPG", img)
 
                 # assume-se que o primeiro par de anéis é o correto
-                targetCenterX = (targets[0][0][2][0] + targets[0][1][2][0])/2
-                targetCenterY = (targets[0][0][2][1] + targets[0][1][2][1])/2
+                targetCentreX = (targets[0][0][2][0] + targets[0][1][2][0])/2
+                targetCentreY = (targets[0][0][2][1] + targets[0][1][2][1])/2
 
-                targetCenter = Point(targetCenterX, targetCenterY, 0)
+                targetCentre = Point(targetCentreX, targetCentreY, 0)
                 # cv2.drawContours(debugImg, ringCombo[0][4], -1, (0, 0, 255), -1)
                 # cv2.drawContours(debugImg, ringCombo[1][4], -1, (0, 0, 255), -1)
-                cv2.line(debugImg, (0, int(targetCenterY)),
-                         (1280, int(targetCenterY)), (255, 0, 0), 2)
-                cv2.line(debugImg, (int(targetCenterX), 0),
-                         (int(targetCenterX), 720), (255, 0, 0), 2)
+                cv2.line(debugImg, (0, int(targetCentreY)),
+                         (1280, int(targetCentreY)), (255, 0, 0), 2)
+                cv2.line(debugImg, (int(targetCentreX), 0),
+                         (int(targetCentreX), 720), (255, 0, 0), 2)
+                print(f"biggestRadius = aaaaaaaaaaa")
                 # cv2.circle(debugImg, (640, 360), radius, (0,255,0), 2)
-                # print(f"alvo detetado ({(targetCenterX/1280)*100:.2f}, {(targetCenterY/800)*100:.2f})")
+                # print(f"alvo detetado ({(targetCentreX/1280)*100:.2f}, {(targetCentreY/800)*100:.2f})")
             else:
+                print(f"biggestRadius = bbbbbbbbbbb")
                 # print("4")
-                targetCenter = Point(0, 0, -1)
+                targetCentre = Point(0, 0, -1)
                 # cv2.circle(debugImg, (640, 360), radius, (0,0,255), 2)
 
-        if "targetCenter" in locals():
-            if distance.euclidean((targetCenter.x, targetCenter.y), (640, 360)) > radius:
+        if "targetCentre" in locals():
+            if distance.euclidean((targetCentre.x, targetCentre.y), (640, 360)) > radius:
                 cv2.circle(debugImg, (640, 360), radius, (0, 0, 255), 10)
             else:
                 cv2.circle(debugImg, (640, 360), radius, (0, 255, 0), 10)
         else:
             cv2.circle(debugImg, (640, 360), radius, (0, 255, 0), 10)
-        self.targetDebugger.publish(
-            self.bridge.cv2_to_imgmsg(debugImg, encoding="passthrough"))
 
-        return targetCenter
+        self.targetDebugger.publish(self.bridge.cv2_to_imgmsg(debugImg, encoding="passthrough"))
+
+        return targetCentre
 
     def poseCallback(self, data):
         self.relAlt = data.pose.position.z  # em metros
@@ -513,7 +533,7 @@ def main():
     global processing, new_msg, msg
 
     rospy.init_node("target", anonymous=True)
-    rate = rospy.Rate(3)
+    rate = rospy.Rate(30)
     td = targetDetector()
 
     while not rospy.is_shutdown():

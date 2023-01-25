@@ -7,7 +7,7 @@ import geometry_msgs.msg
 
 class FixedTFBroadcaster:
     def __init__(self):
-        self.pub_tf = rospy.Publisher("/tf_static", tf2_msgs.msg.TFMessage, queue_size=1)
+        self.pub_tf = rospy.Publisher("/camera_tf", tf2_msgs.msg.TFMessage, queue_size=1)
 
         while not rospy.is_shutdown():
             rospy.sleep(1/3)

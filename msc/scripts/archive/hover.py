@@ -10,7 +10,7 @@ from scipy.spatial.distance import euclidean
 
 class landingController:
   def __init__(self):
-    self.distanceToCenterThreshold = 5
+    self.distanceToCentreThreshold = 5
 
     # parâmetros do PID
     self.px = 0.001
@@ -31,7 +31,7 @@ class landingController:
     self.drone.set_destination(x=0, y=0, z=initialAltitude, psi=0)
 
     self.imageSub = rospy.Subscriber("pylon_camera_node/image_raw", Image, self.imgCallback)
-    self.targetSub = rospy.Subscriber("target/center", Point, self.targetCallback)
+    self.targetSub = rospy.Subscriber("target/centre", Point, self.targetCallback)
 
     self.pub = rospy.Publisher("mavros/setpoint_velocity/cmd_vel", TwistStamped, queue_size=10)
 
@@ -47,13 +47,13 @@ class landingController:
       self.deltaYENU = 0
 
     else:
-      imgCenter = (self.width/2, self.height/2)
-      targetCenter = (data.x, data.y)
+      imgCentre = (self.width/2, self.height/2)
+      targetCentre = (data.x, data.y)
 
-      centerDist = euclidean(imgCenter, targetCenter)
+      centreDist = euclidean(imgCentre, targetCentre)
 
       # está alinhado com o alvo
-      if centerDist < self.distanceToCenterThreshold:
+      if centreDist < self.distanceToCentreThreshold:
         self.deltaXENU = 0
         self.deltaYENU = 0
       else:
