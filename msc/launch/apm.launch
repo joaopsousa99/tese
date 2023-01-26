@@ -2,8 +2,8 @@
 	<!-- vim: set ft=xml noet : -->
 	<!-- Experimental launch script for APM based Drone -->
 
-	<arg name="fcu_url" default="udp://127.0.0.1:14551@14555" />
-	<arg name="gcs_url" default="" />
+	<arg name="gcs_url" default="udp://@192.168.4.76" />
+	<arg name="fcu_url" default="/dev/ttyS1:57600" />
 	<arg name="tgt_system" default="1" />
 	<arg name="tgt_component" default="1" />
 	<arg name="log_output" default="screen" />
