@@ -1,6 +1,4 @@
 <launch>
-  <!-- detetor de elipses -->
-  <node pkg="msc" name="apriltag"        type="apriltag.py"        output="screen"/>
-  <!-- controlador de posição -->
+  <node pkg="msc" name="detect_apriltag"  type="detect_apriltag.py"  output="screen"/>
   <node pkg="msc" name="mission_apriltag" type="mission_apriltag.py" output="screen"/>
 </launch>

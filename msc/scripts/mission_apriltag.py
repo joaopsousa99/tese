@@ -7,6 +7,7 @@ from geometry_msgs.msg import Point, TwistStamped, PoseStamped
 from sensor_msgs.msg import Image
 from scipy.spatial.distance import euclidean
 import numpy as np
+from mavros_msgs.msg import StatusText
 
 
 class landingController:
@@ -15,7 +16,8 @@ class landingController:
     self.targetSub = rospy.Subscriber("apriltag/centre", Point, self.targetCallback)
     self.poseSub = rospy.Subscriber("mavros/local_position/pose", PoseStamped, self.poseCallback)
 
-    self.pub = rospy.Publisher("mavros/setpoint_velocity/cmd_vel", TwistStamped, queue_size=10)
+    self.velocityPub = rospy.Publisher("mavros/setpoint_velocity/cmd_vel", TwistStamped, queue_size=10)
+    self.statusPub = rospy.Publisher("mavros/statustext/send", StatusText, queue_size=10)
  
     self.MAX_DIST_TO_CENTRE_THRESH = 250
     self.MIN_DIST_TO_CENTRE_THRESH = 25
@@ -64,6 +66,13 @@ class landingController:
 
     self.landingAlt = 20.0 # em centímetros
 
+  def publishStatusText(severity, text):
+      status = StatusText()
+      status.header.stamp = rospy.Time.now()
+      status.severity = severity
+      status.text = "LANDING CONTROLLER: " + text
+      self.statusPub.publish(status)
+
   def setup(self):
     self.drone = gnc_api()
     self.drone.wait4connect()
@@ -79,7 +88,7 @@ class landingController:
     invalidWidth = self.IMG_WIDTH is None
 
     if invalidX or invalidY or invalidZ or invalidHeight or invalidWidth:
-      # print(f"RETURN {data.x} {data.y} {data.z} {self.IMG_HEIGHT} {self.IMG_WIDTH}")
+      self.publishStatusText(4, "Invalid data.")
       return
 
     else:
@@ -94,6 +103,7 @@ class landingController:
       if centreDist < self.DISTANCE_TO_CENTRE_THRESH:
         deltaZENU = self.relAlt
         if self.relAlt < self.landingAlt:
+          self.publishStatusText(6, "Landing.")
           self.drone.land()
       else:
         deltaZENU = 0
@@ -115,13 +125,9 @@ class landingController:
       velY = self.KPY*deltaYENU + self.KIY*self.integralErrorY + self.KDY*self.differentialErrorY
       velZ = self.KPZ*deltaZENU + self.KIZ*self.integralErrorZ + self.KDZ*self.differentialErrorZ
 
-      # print("-"*15 + f"\n\t{deltaXENU:.2f}\n\t{self.integralErrorX:.2f}\n\t{self.differentialErrorX:.2f}\n\t{deltaYENU:.2f}\n\t{self.integralErrorY:.2f}\n\t{self.differentialErrorY:.2f}\n\t{deltaZENU:.2f}\n\t{self.integralErrorZ:.2f}\n\t{self.differentialErrorZ:.2f}")
-
       velX = clamp(velX*self.relAlt, self.MIN_VEL_X, self.MAX_VEL_X)
       velY = clamp(velY*self.relAlt, self.MIN_VEL_Y, self.MAX_VEL_Y)
       velZ = np.sign(velZ)*clamp(abs(velZ), self.MIN_ABS_VEL_Z, self.MAX_ABS_VEL_Z)
-      # if velZ == 0.001:
-      #   print(f"{velZ} = {np.sign(velZ)}clamp({self.KPZ*deltaZENU} + {self.KIZ*self.integralErrorZ} + {self.KDZ*self.differentialErrorZ})")
 
       velCmd = TwistStamped()
       velCmd.header.stamp = rospy.Time.now()
@@ -129,7 +135,7 @@ class landingController:
       velCmd.twist.linear.y = velY
       velCmd.twist.linear.z = velZ
 
-      self.pub.publish(velCmd)
+      self.velocityPub.publish(velCmd)
 
   def pid(self, pe, ie, de, P, I, D):
     output = P*pe + I*ie + D*de
@@ -156,7 +162,7 @@ def clamp(x, minimum, maximum):
 
 
 def main():
-  rospy.init_node("landing_controller", anonymous=True)
+  rospy.init_node("mission_apriltag", anonymous=True)
   rate = rospy.Rate(3)
 
   hc = landingController()

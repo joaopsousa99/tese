@@ -9,7 +9,7 @@ from sensor_msgs.msg import Image
 import apriltag
 import yaml
 from yaml.loader import SafeLoader
-from mavros_msgs import StatusText
+from mavros_msgs.msg import StatusText
 
 # hack que encontrei no youtube que salta mensagens
 # enquanto não terminar de processar a atual
@@ -28,7 +28,7 @@ class AprilTagDetector:
 
 		self.tagCentrePub = rospy.Publisher("apriltag/centre", Point, queue_size=1)
 		self.debugPub = rospy.Publisher("apriltag/debug", Image, queue_size=1)
-		self.status = rospy.Publisher("mavros/statustext/send", StatusText, queue_size=1)
+		self.statusPub = rospy.Publisher("mavros/statustext/send", StatusText, queue_size=1)
 
 		# AprilTag
 		apriltagOptions = apriltag.DetectorOptions(families="tag16h5")
@@ -52,6 +52,13 @@ class AprilTagDetector:
 
 		self.relativeAltitude = 0.0  # em metros
 
+	def publishStatusText(severity, text):
+		status = StatusText()
+		status.header.stamp = rospy.Time.now()
+		status.severity = severity
+		status.text = "APRILTAG DETECTOR: " + text
+		self.statusPub.publish(status)
+
 	def ros2cv(self, ros_img_msg, cv_format):
 		try:
 			return self.bridge.imgmsg_to_cv2(ros_img_msg, cv_format)
@@ -71,6 +78,7 @@ class AprilTagDetector:
 		if img is None:
 			print("ERROR: img is None")
 			self.tagCentrePub.publish(Point(0, 0, -1))
+			self.publishStatusText(4, "Invalid image.")
 			return
 
 		img = cv2.medianBlur(img, 5)
@@ -107,8 +115,11 @@ class AprilTagDetector:
 
 					self.debugPub.publish(self.bridge.cv2_to_imgmsg(img, encoding="passthrough"))
 					self.tagCentrePub.publish(tagCentrePoint)
+					self.publishStatusText(6, "Tag detected.")
 
 					break
+
+		self.publishStatusText(6, "No tag detected.")
 
 	def poseCallback(self, data):
 		self.relativeAltitude = data.pose.position.z
