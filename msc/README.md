@@ -1,4 +1,4 @@
-# msc
+# msc - Master of Science
 
 ![iq](docs/imgs/iq.JPG)
 
