@@ -1,1 +1,5 @@
-**/src/msc/__pychache__/*
+**/src/msc/__pychache__
+**/.vscode
+msc/scripts/__pycache__/apriltag.cpython-38.pyc
+msc/src/msc/__pycache__/PrintColours.cpython-38.pyc
+msc/src/msc/__pycache__/py_gnc_functions.cpython-38
