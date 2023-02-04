@@ -89,8 +89,8 @@ class targetDetector:
             
             imgGray = np.uint8((imgGray - np.amin(imgGray))/(imgMax - np.amin(imgGray))*255)
             
-            imgGray = cv2.erode(imgGray, np.ones((5, 5), np.uint8))
-            imgGray = cv2.dilate(imgGray, np.ones((5, 5), np.uint8))
+            # imgGray = cv2.erode(imgGray, np.ones((5, 5), np.uint8))
+            # imgGray = cv2.dilate(imgGray, np.ones((5, 5), np.uint8))
 
             # o detetor de contornos precisa de imagens binárias para funcionar bem
             threshType = cv2.THRESH_BINARY + cv2.THRESH_OTSU
